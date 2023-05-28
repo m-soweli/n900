@@ -1,0 +1,49 @@
+dev
+	root
+	cons
+	swap
+	env
+	pipe
+	proc
+	mnt
+	srv
+	shr
+	dup
+	tls
+	cap
+	sd
+	fs
+	dtracy
+
+	draw	screen
+
+	kbd		devi2c
+	rtc		devi2c
+
+	uart
+	usb
+	i2c
+
+misc
+	uartn900
+
+	sdmmc	mmcn900
+	sdloop
+	sdram
+
+	dtracysys
+	dtracytimer
+	dtracydev
+
+link
+	i2cn900		devi2c
+	mmcn900
+
+port
+	int cpuserver = 0;
+
+bootdir
+	/$objtype/bin/paqfs
+	/$objtype/bin/auth/factotum
+	boot
+	bootfs.paq
