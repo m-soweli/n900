@@ -64,6 +64,7 @@ enum {
 
 typedef struct Ctlr Ctlr;
 struct Ctlr {
+	char *name;
 	u32int *io;
 	ulong irq;
 
@@ -98,6 +99,30 @@ static int
 n900mmcinquiry(SDio *, char *inquiry, int len)
 {
 	return snprint(inquiry, len, "MMC Host Controller");
+}
+
+static void
+n900mmcintr(Ureg *, void *aux)
+{
+	Ctlr *ctlr;
+
+	ctlr = aux;
+	ilock(ctlr);
+	if(csr32r(ctlr, Rstatus) & STcmd)
+		wakeup(ctlr);
+
+	iunlock(ctlr);
+}
+
+static int
+n900mmcdone(void *aux)
+{
+	Ctlr *ctlr = aux;
+
+	if(csr32r(ctlr, Rstatus) & STcmd)
+		return 1;
+
+	return 0;
 }
 
 static int
@@ -138,13 +163,10 @@ n900mmccmd(SDio *io, SDiocmd *iocmd, u32int arg, u32int *resp)
 	csr32w(ctlr, Rarg, arg);
 	csr32w(ctlr, Rcmd, cmd);
 
-	/* FIXME: interrupts */
-	while(!(csr32r(ctlr, Rstatus) & STcmd)) {
-		if(csr32r(ctlr, Rstatus) & STmaskerr)
-			error(Eio);
-
-		delay(10);
-	}
+	/* wait for command to be done */
+	tsleep(ctlr, n900mmcdone, ctlr, 100);
+	if(csr32r(ctlr, Rstatus) & STmaskerr)
+		error(Eio);
 
 	/* unpack the response */
 	switch(cmd & CRmask) {
@@ -264,8 +286,8 @@ mmcn900link(void)
 {
 	int i;
 	static Ctlr ctlr[2] = {
-		{ .io = (u32int*) PHYSMMC1, .irq = IRQMMC1, },
-		{ .io = (u32int*) PHYSMMC2, .irq = IRQMMC2, },
+		{ .name = "mmc1", .io = (u32int*) PHYSMMC1, .irq = IRQMMC1, },
+		{ .name = "mmc2", .io = (u32int*) PHYSMMC2, .irq = IRQMMC2, },
 	};
 
 	static SDio io[nelem(ctlr)];
@@ -281,5 +303,6 @@ mmcn900link(void)
 		io[i].aux = &ctlr[i];
 
 		addmmcio(&io[i]);
+		intrenable(ctlr[i].irq, n900mmcintr, &ctlr[i], BUSUNKNOWN, ctlr[i].name);
 	}
 }
