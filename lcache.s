@@ -28,20 +28,8 @@ TEXT l1dcachewbinv(SB), $-4
 
 /* l1 unified instruction + data cache writeback + invalidate */
 TEXT l1ucachewbinv(SB), $-4
-	/* stash and splhi */
-	MOVW CPSR, R0
-	MOVM.DB.W [R0], (SP)
-	MOVM.DB.W [R14], (SP)
-	CPSID
-
-	/* go */
 	BL l1dcachewbinv(SB)
 	BL l1icacheinv(SB)
-
-	/* restore and splx */
-	MOVM.IA.W (SP), [R14]
-	MOVM.IA.W (SP), [R0]
-	MOVW R0, CPSR
 	RET
 
 /* l2 instruction + data cache writeback */
@@ -64,19 +52,8 @@ TEXT l2idcachewbinv(SB), $-4
 
 /* l1 unified instruction + data cache writeback + invalidate */
 TEXT l2ucachewbinv(SB), $-4
-	/* stash and splhi */
-	MOVW CPSR, R0
-	MOVM.DB.W [R0], (SP)
-	MOVM.DB.W [R14], (SP)
-	CPSID
-
 	BL l2idcachewbinv(SB)
 	BL l2idcacheinv(SB)
-
-	/* restore and splx */
-	MOVM.IA.W (SP), [R14]
-	MOVM.IA.W (SP), [R0]
-	MOVW R0, CPSR
 	RET
 
 /* set/way operations for cacheop */
@@ -94,12 +71,10 @@ TEXT cacheopwbinv(SB), $-4;	MCR 15, 0, R0, C7, C14, 2; RET
 
 /* apply a cache operation to the whole cache */
 TEXT cacheop(SB), $-4
-	/* stash and splhi */
-	MOVW CPSR, R2
+	/* stash */
 	MOVM.DB.W [R2,R14], (SP)
 	MOVW R0, Rop
 	MOVW R1, Rcache
-	CPSID
 
 	/* get cache geometry */
 	MCR 15, 2, Rcache, C0, C0, 0; ISB
@@ -137,7 +112,6 @@ cacheopsets:
 	SUB $1, Rset; CMP $0, Rset; BEQ cacheopsets /* loop sets */
 	SUB $1, Rways; CMP $0, Rways; BEQ cacheopways /* loop ways */
 
-	/* restore regs and splx */
+	/* restore */
 	MOVM.IA.W (SP), [R2,R14]
-	MOVW R2, CPSR
 	RET

@@ -228,10 +228,9 @@ mmuuncache(void *v, usize s)
 void
 putmmu(uintptr va, uintptr pa, Page *page)
 {
+	int l1x, s, x;
 	PTE *l1, *l2;
 	Page *pg;
-	int l1x;
-	int x;
 
 	l1x = L1(va);
 	l1 = &m->mmul1[l1x];
@@ -252,9 +251,11 @@ putmmu(uintptr va, uintptr pa, Page *page)
 		up->mmul2 = pg;
 
 		/* FIXME: excessive invalidation */
+		s = splhi();
 		*l1 = PPN(pg->pa)|L1coarse;
 		l1ucachewbinv();
 		l2ucachewbinv();
+		splx(s);
 	}
 
 	/* put l2 entry */
@@ -271,6 +272,7 @@ putmmu(uintptr va, uintptr pa, Page *page)
 	l2 = KADDR(PPN(*l1)); l2[L2(va)] = PPN(pa)|x;
 
 	/* FIXME: excessive invalidation */
+	s = splhi();
 	l1ucachewbinv();
 	l2ucachewbinv();
 	if(needtxtflush(page)) {
@@ -278,6 +280,7 @@ putmmu(uintptr va, uintptr pa, Page *page)
 		donetxtflush(page);
 	}
 
+	splx(s);
 	mmuinvalidate();
 	mmudebug("putmmu");
 }
