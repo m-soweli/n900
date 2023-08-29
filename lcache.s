@@ -28,8 +28,10 @@ TEXT l1dcachewbinv(SB), $-4
 
 /* l1 unified instruction + data cache writeback + invalidate */
 TEXT l1ucachewbinv(SB), $-4
+	MOVM.DB.W [R14], (SP)
 	BL l1dcachewbinv(SB)
 	BL l1icacheinv(SB)
+	MOVM.IA.W (SP), [R14]
 	RET
 
 /* l2 instruction + data cache writeback */
@@ -52,8 +54,10 @@ TEXT l2idcachewbinv(SB), $-4
 
 /* l1 unified instruction + data cache writeback + invalidate */
 TEXT l2ucachewbinv(SB), $-4
+	MOVM.DB.W [R14], (SP)
 	BL l2idcachewbinv(SB)
 	BL l2idcacheinv(SB)
+	MOVM.IA.W (SP), [R14]
 	RET
 
 /* set/way operations for cacheop */
