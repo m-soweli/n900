@@ -79,6 +79,7 @@ TEXT _vdabt(SB), $-4
 	B _vswitch
 
 TEXT _virq(SB), $-4
+	CLREX
 	DSB
 	MOVM.IA [R0-R4], (R13)
 	MOVW $PsrMirq, R0
