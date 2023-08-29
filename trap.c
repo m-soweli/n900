@@ -205,6 +205,12 @@ notify(Ureg *ureg)
 		procctl();
 	if(up->nnote == 0)
 		return 0;
+	
+	if(up->fpstate == FPactive) {
+		fpsave(up->fpsave);
+		up->fpstate = FPinactive;
+	}
+	up->fpstate |= FPillegal;
 
 	s = spllo();
 	qlock(&up->debug);
@@ -260,6 +266,7 @@ noted(Ureg *ureg, ulong arg0)
 	}
 
 	up->notified = 0;
+	up->fpstate &= ~FPillegal;
 	nureg = up->ureg;
 	oureg = (ulong) nureg;
 	if(!okaddr(oureg - BY2WD, BY2WD + sizeof(Ureg), 0) || (oureg & 3) != 0) {
