@@ -1,0 +1,3 @@
+mw 0x80010000 0x0 0x10000
+${mmctype}load mmc ${mmcnum}:${mmcpart} 0x80010000 plan9.ini
+${mmctype}load mmc ${mmcnum}:${mmcpart} 0x80020000 9n900.u && bootm 0x80020000

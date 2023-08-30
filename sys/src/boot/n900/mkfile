@@ -1,0 +1,8 @@
+FILES=boot.scr
+
+all:V: $FILES
+clean:V:
+	rm -f $FILES
+
+boot.scr:
+	aux/txt2uimage -o $target $prereq
