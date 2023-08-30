@@ -1,50 +1,36 @@
 # n900
 
-a [9front][1] kernel port to the [nokia n900][2].
+a [plan 9 front][1] port to the [nokia n900][2].
 
 [1]: http://9front.org
 [2]: https://en.wikipedia.org/wiki/Nokia_N900
 
-## installation
+## status
 
-you will need:
+**working**: keyboard, screen, rtc, mmc  
+**broken**: audio, touch, battery, usb, networking
 
-- an up to date u-boot on your n900 compiled with support for plan 9 kernels.
-  the u-boot package in the [maemo.org][3] repositories is unfortunately insufficient.
-  this is left to the reader.
+## build
 
-- an up to date 9front system.
+clone this repository to a 9front system and bind the directories.
 
-building the kernel requires your system to have the arm libraries
-and commands built, so start by installing those:
+    cd n900
+    bind -ac sys/src/9 /sys/src/9
+    bind -ac sys/src/boot /sys/src/boot
 
-    cd /sys/src/
-    objtype=arm mk clean
+compile your system for the arm architecture.
+
+    cd /sys/src
     objtype=arm mk install
+    objtype=arm mk clean
 
-then, clone this repo to your 9front kernel source, as `/sys/src/9/n900`,
-and install it with:
+compile the kernel
 
     cd /sys/src/9/n900
-    mk clean
     mk install
+    mk clean
 
-copy the compiled kernel to a fat formatted micro sd card
-and setup the boot scripts:
+build the boot scripts
 
-    cp /arm/9n900.u /n/dos/9n900.u
-    aux/txt2uimage -o /n/dos/boot.scr <<EOF
-        mw 0x80010000 0x0 0x10000
-        ${mmctype}load ${mmcnum}:${mmcpart} 0x80010000 plan9.ini
-        ${mmctype}load ${mmcnum}:${mmcpart} 0x80020000 9n900.u
-    EOF
-
-now eject the sd card and put it in your n900, boot the system
-with the keyboard open, and select external sd card at the [u-boot][4]
-menu.
-
-if all goes well, you see the bootargs[] prompt shortly.
-no refunds.
-
-[3]: https://maemo.org
-[4]: https://www.denx.de/project/u-boot/
+    cd /sys/src/boot/n900
+    mk
