@@ -8,7 +8,7 @@ a [plan 9 front][1] port to the [nokia n900][2].
 ## status
 
 **working**: keyboard, screen, rtc, mmc  
-**broken**: audio, touch, battery, usb, networking
+**broken**: audio, touch, battery, usb, networking, camera
 
 ## build
 
@@ -18,7 +18,7 @@ clone this repository to a 9front system and bind the directories.
     bind -ac sys/src/9 /sys/src/9
     bind -ac sys/src/boot /sys/src/boot
 
-compile your system for the arm architecture.
+compile the system for the arm architecture.
 
     cd /sys/src
     objtype=arm mk install
