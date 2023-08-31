@@ -15,9 +15,9 @@ a [plan 9 front][1] port to the [nokia n900][2].
 clone this repository to a 9front system and bind the directories.
 
     cd n900
-    bind -ac sys/src/9 /sys/src/9
-    bind -ac sys/src/boot /sys/src/boot
-    bind -ac sys/lib/dist /sys/lib/dist
+    bind -bc sys/src/9 /sys/src/9
+    bind -bc sys/src/boot /sys/src/boot
+    bind -bc sys/lib/dist /sys/lib/dist
 
 compile the system for the arm architecture.
 
@@ -27,7 +27,7 @@ compile the system for the arm architecture.
 
 compile the kernel
 
-    cd /sys/src/9/n900
+    cd /sys/src/9/omap
     mk install
     mk clean
 
