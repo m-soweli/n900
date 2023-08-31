@@ -43,3 +43,13 @@ build a bootable image suitable for writing to an sd card.
 
     cd /sys/lib/dist
     mk 9front.n900.img
+
+## links
+
+**hardware:** [schematic][3], [sysinfo][4]  
+**components:** [processor][5],  [touch][6]
+
+[3]: http://plan9.stanleylieber.com/hardware/nokia/n900/n900.schematics.pdf
+[4]: http://plan9.stanleylieber.com/hardware/nokia/n900/sysinfo
+[5]: https://archive.org/download/omap-3430-trm/Omap3430-trm.pdf
+[6]: https://www.ti.com/lit/ds/symlink/tsc2005.pdf
