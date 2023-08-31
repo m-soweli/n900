@@ -39,10 +39,7 @@ build the boot scripts
 build a bootable image suitable for writing to an sd card.
 
     bind /root /n/src9
-    bind -ac /dist/plan9front /n/src9
-    bind -ac /sys/src/9 /n/src9/sys/src/9
-    bind -ac /sys/src/boot /n/src9/sys/src/boot
-    bind -a /sys/lib/dist /n/src9/sys/lib/dist
+    bind -a /dist/plan9front /n/src9
 
     cd /sys/lib/dist
     mk 9front.n900.img
