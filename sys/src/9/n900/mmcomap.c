@@ -78,7 +78,7 @@ struct Ctlr {
 };
 
 static int
-n900mmcinit(SDio *io)
+omapmmcinit(SDio *io)
 {
 	Ctlr *ctlr;
 
@@ -91,18 +91,18 @@ n900mmcinit(SDio *io)
 }
 
 static void
-n900mmcenable(SDio *)
+omapmmcenable(SDio *)
 {
 }
 
 static int
-n900mmcinquiry(SDio *, char *inquiry, int len)
+omapmmcinquiry(SDio *, char *inquiry, int len)
 {
 	return snprint(inquiry, len, "MMC Host Controller");
 }
 
 static void
-n900mmcintr(Ureg *, void *aux)
+omapmmcintr(Ureg *, void *aux)
 {
 	Ctlr *ctlr;
 
@@ -115,7 +115,7 @@ n900mmcintr(Ureg *, void *aux)
 }
 
 static int
-n900mmcdone(void *aux)
+omapmmcdone(void *aux)
 {
 	Ctlr *ctlr = aux;
 
@@ -126,7 +126,7 @@ n900mmcdone(void *aux)
 }
 
 static int
-n900mmccmd(SDio *io, SDiocmd *iocmd, u32int arg, u32int *resp)
+omapmmccmd(SDio *io, SDiocmd *iocmd, u32int arg, u32int *resp)
 {
 	Ctlr *ctlr;
 	u32int cmd;
@@ -164,7 +164,7 @@ n900mmccmd(SDio *io, SDiocmd *iocmd, u32int arg, u32int *resp)
 	csr32w(ctlr, Rcmd, cmd);
 
 	/* wait for command to be done */
-	tsleep(ctlr, n900mmcdone, ctlr, 100);
+	tsleep(ctlr, omapmmcdone, ctlr, 100);
 	if(csr32r(ctlr, Rstatus) & STmaskerr)
 		error(Eio);
 
@@ -191,7 +191,7 @@ n900mmccmd(SDio *io, SDiocmd *iocmd, u32int arg, u32int *resp)
 }
 
 static void
-n900mmciosetup(SDio *io, int, void *, int bsize, int bcount)
+omapmmciosetup(SDio *io, int, void *, int bsize, int bcount)
 {
 	Ctlr *ctlr;
 
@@ -205,7 +205,7 @@ n900mmciosetup(SDio *io, int, void *, int bsize, int bcount)
 }
 
 static void
-n900mmcbufread(Ctlr *ctlr, uchar *buf, int len)
+omapmmcbufread(Ctlr *ctlr, uchar *buf, int len)
 {
 	for(len >>= 2; len > 0; len--) {
 		*((u32int*)buf) = csr32r(ctlr, Rdata);
@@ -214,7 +214,7 @@ n900mmcbufread(Ctlr *ctlr, uchar *buf, int len)
 }
 
 static void
-n900mmcbufwrite(Ctlr *ctlr, uchar *buf, int len)
+omapmmcbufwrite(Ctlr *ctlr, uchar *buf, int len)
 {
 	for(len >>= 2; len > 0; len--) {
 		csr32w(ctlr, Rdata, *((u32int*)buf));
@@ -223,7 +223,7 @@ n900mmcbufwrite(Ctlr *ctlr, uchar *buf, int len)
 }
 
 static void
-n900mmcio(SDio *io, int write, uchar *buf, int len)
+omapmmcio(SDio *io, int write, uchar *buf, int len)
 {
 	Ctlr *ctlr;
 	u32int stat, n;
@@ -248,7 +248,7 @@ n900mmcio(SDio *io, int write, uchar *buf, int len)
 			if(n > ctlr->cmd.bsize)
 				n = ctlr->cmd.bsize;
 
-			n900mmcbufwrite(ctlr, buf, n);
+			omapmmcbufwrite(ctlr, buf, n);
 			len -= n;
 			buf += n;
 		}
@@ -262,7 +262,7 @@ n900mmcio(SDio *io, int write, uchar *buf, int len)
 			if(n > ctlr->cmd.bsize)
 				n = ctlr->cmd.bsize;
 
-			n900mmcbufread(ctlr, buf, n);
+			omapmmcbufread(ctlr, buf, n);
 			len -= n;
 			buf += n;
 		}
@@ -276,33 +276,34 @@ n900mmcio(SDio *io, int write, uchar *buf, int len)
 }
 
 static void
-n900mmcbus(SDio *, int, int)
+omapmmcbus(SDio *, int, int)
 {
 	/* FIXME: change bus width */
 }
 
 void
-mmcn900link(void)
+mmcomaplink(void)
 {
 	int i;
-	static Ctlr ctlr[2] = {
-		{ .name = "mmc1", .io = (u32int*) PHYSMMC1, .irq = IRQMMC1, },
-		{ .name = "mmc2", .io = (u32int*) PHYSMMC2, .irq = IRQMMC2, },
+	static Ctlr ctlr[] = {
+		{ .name = "mmc 1", .io = (u32int*) PHYSMMC1, .irq = IRQMMC1, },
+		{ .name = "mmc 2", .io = (u32int*) PHYSMMC2, .irq = IRQMMC2, },
+		{ .name = "mmc 3", .io = (u32int*) PHYSMMC3, .irq = IRQMMC3, },
 	};
 
 	static SDio io[nelem(ctlr)];
 	for(i = 0; i < nelem(io); i++) {
 		io[i].name = "mmc",
-		io[i].init = n900mmcinit,
-		io[i].enable = n900mmcenable,
-		io[i].inquiry = n900mmcinquiry,
-		io[i].cmd = n900mmccmd,
-		io[i].iosetup = n900mmciosetup,
-		io[i].io = n900mmcio,
-		io[i].bus = n900mmcbus,
+		io[i].init = omapmmcinit,
+		io[i].enable = omapmmcenable,
+		io[i].inquiry = omapmmcinquiry,
+		io[i].cmd = omapmmccmd,
+		io[i].iosetup = omapmmciosetup,
+		io[i].io = omapmmcio,
+		io[i].bus = omapmmcbus,
 		io[i].aux = &ctlr[i];
 
 		addmmcio(&io[i]);
-		intrenable(ctlr[i].irq, n900mmcintr, &ctlr[i], BUSUNKNOWN, ctlr[i].name);
+		intrenable(ctlr[i].irq, omapmmcintr, &ctlr[i], BUSUNKNOWN, ctlr[i].name);
 	}
 }

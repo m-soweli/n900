@@ -17,17 +17,17 @@ dev
 
 	draw	screen
 
-	kbd		devi2c
-	rtc		devi2c
+	kbdtwl		devi2c
+	rtctwl		devi2c
 
 	uart
 	usb
 	i2c
 
 misc
-	uartn900
+	uartomap
 
-	sdmmc	mmcn900
+	sdmmc	mmcomap
 	sdloop
 	sdram
 
@@ -36,8 +36,8 @@ misc
 	dtracydev
 
 link
-	i2cn900		devi2c
-	mmcn900
+	i2comap		devi2c
+	mmcomap
 
 port
 	int cpuserver = 0;

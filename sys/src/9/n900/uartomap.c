@@ -69,7 +69,7 @@ struct Ctlr {
 	int ie;
 };
 
-extern PhysUart n900physuart;
+extern PhysUart omapphysuart;
 
 static Ctlr ctlr[] = {
 	{ .io = (u32int*) PHYSUART1, .irq = IRQUART1, },
@@ -77,44 +77,44 @@ static Ctlr ctlr[] = {
 	{ .io = (u32int*) PHYSUART3, .irq = IRQUART3, },
 };
 
-static Uart n900uart[] = {
+static Uart omapuart[] = {
 	{
 		.regs = &ctlr[0],
 		.name = "uart1",
 		.freq = 48000000,
-		.phys = &n900physuart,
-		.next = &n900uart[1],
+		.phys = &omapphysuart,
+		.next = &omapuart[1],
 	},
 	{
 		.regs = &ctlr[1],
 		.name = "uart2",
 		.freq = 48000000,
-		.phys = &n900physuart,
-		.next = &n900uart[2],
+		.phys = &omapphysuart,
+		.next = &omapuart[2],
 	},
 	{
 		.regs = &ctlr[2],
 		.name = "uart3",
 		.freq = 48000000,
-		.phys = &n900physuart,
+		.phys = &omapphysuart,
 		.next = nil,
 	},
 };
 
 static Uart *
-n900uartpnp(void)
+omapuartpnp(void)
 {
-	return n900uart;
+	return omapuart;
 }
 
 static long
-n900uartstatus(Uart *, void *, long, long)
+omapuartstatus(Uart *, void *, long, long)
 {
 	return 0;
 }
 
 static void
-n900uartintr(Ureg *, void *arg)
+omapuartintr(Ureg *, void *arg)
 {
 	Uart *uart;
 	Ctlr *ctlr;
@@ -148,7 +148,7 @@ n900uartintr(Ureg *, void *arg)
 }
 
 static void
-n900uartenable(Uart *uart, int ie)
+omapuartenable(Uart *uart, int ie)
 {
 	Ctlr *ctlr;
 
@@ -162,7 +162,7 @@ n900uartenable(Uart *uart, int ie)
 	csr32w(ctlr, Rfcr, FCRen);
 	if(ie) {
 		if(!ctlr->ie) {
-			intrenable(ctlr->irq, n900uartintr, uart, 0, uart->name);
+			intrenable(ctlr->irq, omapuartintr, uart, 0, uart->name);
 			ctlr->ie = 1;
 		}
 
@@ -173,7 +173,7 @@ n900uartenable(Uart *uart, int ie)
 }
 
 static void
-n900uartdisable(Uart *uart)
+omapuartdisable(Uart *uart)
 {
 	Ctlr *ctlr;
 
@@ -182,7 +182,7 @@ n900uartdisable(Uart *uart)
 	ilock(ctlr);
 	csr32w(ctlr, Rier, 0);
 	if(ctlr->ie) {
-		intrdisable(ctlr->irq, n900uartintr, uart, 0, uart->name);
+		intrdisable(ctlr->irq, omapuartintr, uart, 0, uart->name);
 		ctlr->ie = 0;
 	}
 
@@ -190,7 +190,7 @@ n900uartdisable(Uart *uart)
 }
 
 static void
-n900uartkick(Uart *uart)
+omapuartkick(Uart *uart)
 {
 	Ctlr *ctlr;
 	int i;
@@ -210,7 +210,7 @@ n900uartkick(Uart *uart)
 }
 
 static int
-n900uartgetc(Uart *uart)
+omapuartgetc(Uart *uart)
 {
 	Ctlr *ctlr;
 
@@ -222,7 +222,7 @@ n900uartgetc(Uart *uart)
 }
 
 static void
-n900uartputc(Uart *uart, int c)
+omapuartputc(Uart *uart, int c)
 {
 	Ctlr *ctlr;
 
@@ -233,36 +233,36 @@ n900uartputc(Uart *uart, int c)
 	csr32w(ctlr, Rthr, c);
 }
 
-static void n900uartnop(Uart *, int) {}
-static int n900uartnope(Uart *, int) { return -1; }
+static void omapuartnop(Uart *, int) {}
+static int omapuartnope(Uart *, int) { return -1; }
 
-PhysUart n900physuart = {
-	.name = "n900",
+PhysUart omapphysuart = {
+	.name = "omap",
 
-	.pnp = n900uartpnp,
-	.enable = n900uartenable,
-	.disable = n900uartdisable,
-	.kick = n900uartkick,
-	.status = n900uartstatus,
-	.getc = n900uartgetc,
-	.putc = n900uartputc,
+	.pnp = omapuartpnp,
+	.enable = omapuartenable,
+	.disable = omapuartdisable,
+	.kick = omapuartkick,
+	.status = omapuartstatus,
+	.getc = omapuartgetc,
+	.putc = omapuartputc,
 
-	.dobreak = n900uartnop,
-	.baud = n900uartnope,
-	.bits = n900uartnope,
-	.stop = n900uartnope,
-	.parity = n900uartnope,
-	.modemctl = n900uartnop,
-	.rts = n900uartnop,
-	.dtr = n900uartnop,
-	.fifo = n900uartnop,
-	.power = n900uartnop,
+	.dobreak = omapuartnop,
+	.baud = omapuartnope,
+	.bits = omapuartnope,
+	.stop = omapuartnope,
+	.parity = omapuartnope,
+	.modemctl = omapuartnop,
+	.rts = omapuartnop,
+	.dtr = omapuartnop,
+	.fifo = omapuartnop,
+	.power = omapuartnop,
 };
 
 void
 uartinit(void)
 {
-	consuart = &n900uart[2];
+	consuart = &omapuart[2];
 	consuart->console = 1;
 	uartputs(kmesg.buf, kmesg.n);
 }
