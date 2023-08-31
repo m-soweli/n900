@@ -150,7 +150,7 @@ screenwin(Ctlr *ctlr)
 
 		r = insetrect(r, 6);
 		p = r.min;
-		memimagestring(ctlr->scrimg, p, memblack, ZP, getmemdefont(), " Plan 9 Console ");
+		memimagestring(ctlr->scrimg, p, memblack, ZP, ctlr->scrfont, " Plan 9 Console ");
 	}
 
 	ctlr->win = Rpt(addpt(r.min, Pt(0, h + 6)), subpt(r.max, Pt(6, 6)));
@@ -283,14 +283,14 @@ screenputc(Ctlr *ctlr, char *buf)
 		break;
 
 	default:
-		p = memsubfontwidth(getmemdefont(), buf); w = p.x;
+		p = memsubfontwidth(ctlr->scrfont, buf); w = p.x;
 		if(ctlr->pos.x >= ctlr->win.max.x - w)
 			screenputc(ctlr, "\n");
 
 		*xp++ = ctlr->pos.x;
 		r = Rect(ctlr->pos.x, ctlr->pos.y, ctlr->pos.x + w, ctlr->pos.y + h);
 		memimagedraw(ctlr->scrimg, r, memwhite, ZP, memopaque, ZP, S);
-		memimagestring(ctlr->scrimg, ctlr->pos, memblack, ZP, getmemdefont(), buf);
+		memimagestring(ctlr->scrimg, ctlr->pos, memblack, ZP, ctlr->scrfont, buf);
 		ctlr->pos.x += w;
 		break;
 	}
