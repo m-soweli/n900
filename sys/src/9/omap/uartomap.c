@@ -213,10 +213,15 @@ static int
 omapuartgetc(Uart *uart)
 {
 	Ctlr *ctlr;
+	int i;
 
 	ctlr = uart->regs;
-	while(!(csr32r(ctlr, Rlsr) & LSRrxempty))
-		;
+	for(i = 0; i < 128; i++) {
+		if(csr32r(ctlr, Rlsr) & LSRrxempty)
+			break;
+
+		delay(1);
+	}
 
 	return csr32r(ctlr, Rrhr);
 }
@@ -225,10 +230,15 @@ static void
 omapuartputc(Uart *uart, int c)
 {
 	Ctlr *ctlr;
+	int i;
 
 	ctlr = uart->regs;
-	while(!(csr32r(ctlr, Rlsr) & LSRtxempty))
-		;
+	for(i = 0; i < 128; i++) {
+		if(csr32r(ctlr, Rlsr) & LSRtxempty)
+			break;
+
+		delay(1);
+	}
 
 	csr32w(ctlr, Rthr, c);
 }
