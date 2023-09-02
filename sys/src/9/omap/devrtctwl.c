@@ -180,7 +180,7 @@ rtcwrite(Chan *, void *, long, vlong)
 	return 0;
 }
 
-Dev rtcdevtab = {
+Dev rtctwldevtab = {
 	'r',
 	"rtc",
 

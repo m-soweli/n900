@@ -221,7 +221,7 @@ kbdwrite(Chan *, void *, long, vlong)
 	return 0;
 }
 
-Dev kbddevtab = {
+Dev kbdtwldevtab = {
 	L'b',
 	"kbd",
 
