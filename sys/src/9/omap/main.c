@@ -187,6 +187,7 @@ main(void)
 	trapinit();
 	intrinit();
 	timerinit();
+	timersinit();
 	cpuidprint();
 	procinit0();
 	initseg();

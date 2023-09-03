@@ -26,6 +26,12 @@ enum {
 	Rldr		= 0x2c,
 };
 
+enum {
+	Trate = 32*1024,
+	Tcycles = Trate/HZ,
+	Tcyclesmin = Tcycles/100,
+};
+
 typedef union Counter Counter;
 typedef struct Ctlr Ctlr;
 
@@ -128,7 +134,7 @@ fastticks(uvlong *hz)
 	/* FIXME: this has poor precision, but qemu has no cycle counter */
 	ctlr = &timers[0];
 	if(hz)
-		*hz = 32*1024;
+		*hz = Trate;
 
 	ilock(ctlr);
 	c.cnt = ctlr->cnt;
@@ -166,7 +172,17 @@ delay(int n)
 }
 
 void
-timerset(Tval)
+timerset(Tval next)
 {
-	/* FIXME: ? */
+	long off;
+
+	ilock(&timers[1]);
+	off = next - fastticks(nil);
+	if(off > Tcycles)
+		off = Tcycles;
+	if(off < Tcyclesmin)
+		off = Tcyclesmin;
+
+	csr32w(&timers[1], Rcrr, -off);
+	iunlock(&timers[1]);
 }
