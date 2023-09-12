@@ -14,22 +14,15 @@ enum {
 	/* display controller registers */
 	RDrev			= 0x400,
 	RDsysconf		= 0x410,
-		DSCidle			= 1<<0,
-		DSCreset		= 1<<1,
-		DSCidlesmart	= 2<<3,
 	RDsysstat		= 0x414,
-		DSSreset		= 1<<0,
 	RDirqstat		= 0x418,
 	RDirqen			= 0x41c,
 	RDcontrol		= 0x440,
 		DClcdon			= 1<<0,
-		DClcdactive		= 1<<3,
-		DClcdclockrun	= 1<<27,
-		DClcdenable		= 1<<28,
-		DClcdenablehi	= 1<<29,
+		DClcdgo			= 1<<5,
+		DClcdbits		= 3<<8,
 		DClcdbits24		= 3<<8,
 	RDconfig		= 0x444,
-		DCNgamma		= 1<<3,
 	RDdefcolor		= 0x44c,
 	RDtranscolor	= 0x454,
 	RDlinestat		= 0x45c,
@@ -43,9 +36,6 @@ enum {
 	RDgfxpos			= 0x488,
 	RDgfxsize			= 0x48c,
 	RDgfxattr			= 0x4a0,
-		DGAenable			= 1<<0,
-		DGAfmt				= 0x6<<1,
-		DGAburst			= 0x2<<6,
 	RDgfxrowinc			= 0x4ac,
 	RDgfxpixelinc		= 0x4b0,
 };
@@ -54,15 +44,6 @@ enum {
 	Tab	= 4,
 	Scroll = 8,
 };
-
-#define RDdefcolorn(n)		(RDdefcolor + (n)*4)
-#define RDtranscolorn(n)	(RDtranscolor + (n)*4)
-
-#define RDgfxban(n)			(RDgfxba + (n)*4)
-
-#define TIME(s, f, b)		((s & 0xff) | (f & 0xfff) << 8 | (b & 0xfff) << 20)
-#define POS(x, y)			((x)<<16 | (y))
-#define SIZE(w, h)			((h-1)<<16 | (w-1))
 
 typedef struct Ctlr Ctlr;
 struct Ctlr {
@@ -89,14 +70,14 @@ static Ctlr ctlr = {
 static void myscreenputs(char *s, int n);
 
 static int
-screendatainit(Ctlr *ctlr)
+screendatainit(Ctlr *ctlr, uint x, uint y)
 {
 	Rectangle r;
 
 	if(memimageinit() < 0)
 		return -1;
 
-	r = Rect(0, 0, 800, 480);
+	r = Rect(0, 0, x, y);
 	ctlr->scrdata.ref = 1;
 	ctlr->scrdata.bdata = ucalloc(r.max.x * r.max.y * 2);
 	if(!ctlr->scrdata.bdata)
@@ -162,45 +143,22 @@ void
 screeninit(void)
 {
 	Ctlr *c;
+	uint x, y;
 
 	c = &ctlr;
-	if(screendatainit(c) < 0)
+	if((csr32r(c, RDconfig) & DClcdbits) != DClcdbits24)
+		return;
+
+	x = ((csr32r(c, RDgfxsize) & 0x0000ffff) >> 0) + 1;;
+	y = ((csr32r(c, RDgfxsize) & 0xffff0000) >> 16) + 1;
+	if(screendatainit(c, x, y) < 0)
 		return;
 
 	screenwin(c);
 	screenputs(kmesg.buf, kmesg.n);
 
-	/* reset the display controller */
-	csr32w(c, RDsysconf, DSCreset);
-	while(!(csr32r(c, RDsysstat) & DSSreset))
-		;
-
-	/* configure the display controller */
-	csr32w(c, RDsysconf, DSCidle | DSCidlesmart);
-	csr32w(c, RDcontrol, DClcdbits24);
-	csr32w(c, RDconfig, DCNgamma);
-
-	/* configure display size and timings */
-	csr32w(c, RDtimeh, TIME(3, 15, 11));
-	csr32w(c, RDtimev, TIME(2, 3, 3));
-	csr32w(c, RDsize, SIZE(800, 480));
-
-	/* enable the lcd interface */
-	csr32w(c, RDcontrol, csr32r(c, RDcontrol) | DClcdactive | DClcdclockrun | DClcdenablehi);
-	csr32w(c, RDcontrol, csr32r(c, RDcontrol) | DClcdenable);
-
-	/* configure the graphics layer */
-	csr32w(c, RDgfxban(0), (uintptr) c->scrdata.bdata);
-	csr32w(c, RDgfxpos, POS(c->scrimg->r.min.x, c->scrimg->r.min.y));
-	csr32w(c, RDgfxsize, SIZE(c->scrimg->r.max.x, c->scrimg->r.max.y));
-	csr32w(c, RDgfxattr, DGAfmt | DGAburst);
-	csr32w(c, RDgfxrowinc, 1);
-	csr32w(c, RDgfxpixelinc, 1);
-
-	/* enable gfx pipeline and turn lcd on */
-	csr32w(c, RDgfxattr, csr32r(c, RDgfxattr) | DGAenable);
-	csr32w(c, RDcontrol, csr32r(c, RDcontrol) | DClcdon);
-
+	csr32w(c, RDgfxba, (uintptr) c->scrdata.bdata);
+	csr32w(c, RDcontrol, csr32r(c, RDcontrol) | DClcdgo | DClcdon);
 	conf.monitor = 1;
 }
 
