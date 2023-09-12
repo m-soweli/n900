@@ -151,13 +151,21 @@ static void
 omapuartenable(Uart *uart, int ie)
 {
 	Ctlr *ctlr;
+	int i;
 
 	ctlr = uart->regs;
 	ilock(ctlr);
 
 	csr32w(ctlr, Rsysc, SCreset);
-	while(!(csr32r(ctlr, Rsyss) & SSreset))
-		;
+	for(i = 0; i < 100; i++) {
+		if(csr32r(ctlr, Rsyss) & SSreset)
+			break;
+	}
+
+	if(i == 100) {
+		iunlock(ctlr);
+		return;
+	}
 
 	csr32w(ctlr, Rfcr, FCRen);
 	if(ie) {
