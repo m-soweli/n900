@@ -17,27 +17,17 @@ dev
 
 	draw	screen
 
-	kbdtwl		devi2c
-	rtctwl		devi2c
-
 	uart
-	usb
-	i2c
 
 misc
 	uartomap
 
-	sdmmc	mmcomap
 	sdloop
 	sdram
 
 	dtracysys
 	dtracytimer
 	dtracydev
-
-link
-	i2comap		devi2c
-	mmcomap
 
 port
 	int cpuserver = 0;

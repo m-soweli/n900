@@ -150,8 +150,6 @@ init0(void)
 
 		snprint(buf, sizeof(buf), "nokia %s", conffile);
 		ksetenv("terminal", buf, 0);
-		ksetenv("console", "2", 0);
-		ksetenv("kbmap", "n900", 0);
 		for(i = 0; i < nconf; i++) {
 			if(*confname[i] != '*')
 				ksetenv(confname[i], confval[i], 0);
@@ -173,7 +171,6 @@ init0(void)
 void
 main(void)
 {
-	uartinit();
 	machinit();
 	mmuinit();
 	plan9iniinit();
@@ -193,6 +190,7 @@ main(void)
 	initseg();
 	links();
 
+	uartinit();
 	screeninit();
 	chandevreset();
 
