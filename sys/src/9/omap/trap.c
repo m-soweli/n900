@@ -9,6 +9,9 @@
 #include "tos.h"
 #include "ureg.h"
 
+static volatile int probing;
+static volatile int probed;
+
 void
 callwithureg(void (*f) (Ureg *))
 {
@@ -447,6 +450,12 @@ trap(Ureg *ureg)
 
 	case PsrMdabt:
 		ureg->pc -= 8;
+		if(probing && !user) {
+			ureg->pc += 4;
+			probed = 0;
+			goto out;
+		}
+
 		traparm(ureg, getdfsr(), getdfar());
 		break;
 
@@ -477,6 +486,7 @@ trap(Ureg *ureg)
 		break;
 	}
 
+out:
 	splhi();
 	if(user) {
 		if(up->procctl || up->nnote)
@@ -574,4 +584,26 @@ syscall(Ureg *ureg)
 
 	kexit(ureg);
 	splhi();
+}
+
+int
+probeaddr(uintptr a)
+{
+	static Lock l;
+	volatile ulong v;
+
+	ilock(&l);
+	probing = 1;
+	probed = 1;
+
+	v = *(ulong*)a;
+
+	coherence();
+	if(!probed) {
+		iunlock(&l);
+		return 0;
+	}
+
+	iunlock(&l);
+	return 1;
 }

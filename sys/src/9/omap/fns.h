@@ -12,7 +12,8 @@ int cmpswap(long *, long, long);
 int cas(long *, long, long);
 int tas(void *);
 
-void evenaddr(uintptr va);
+void evenaddr(uintptr a);
+int probeaddr(uintptr a);
 void procrestore(Proc *);
 void procsave(Proc *);
 void procsetup(Proc *);
