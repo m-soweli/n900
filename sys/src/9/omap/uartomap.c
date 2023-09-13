@@ -280,7 +280,27 @@ PhysUart omapphysuart = {
 void
 uartinit(void)
 {
-	consuart = &omapuart[2];
+	Uart *u;
+	Ctlr *c;
+	char *p, *pe;
+	ulong n;
+
+	p = getconf("console");
+	if(p == nil)
+		return;
+
+	n = strtoul(p, &pe, 0);
+	if(pe == p || n > nelem(omapuart))
+		return;
+
+	u = &omapuart[n];
+	c = omapuart[n].regs;
+	if(!probeaddr((uintptr)c->io))
+		return;
+
+	(*u->phys->enable)(u, 0);
+
+	consuart = u;
 	consuart->console = 1;
 	uartputs(kmesg.buf, kmesg.n);
 }
