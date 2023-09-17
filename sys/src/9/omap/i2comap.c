@@ -129,28 +129,27 @@ omapi2cinit(I2Cbus *bus)
 }
 
 static int
-omapi2cio(I2Cbus *bus, uchar *pkt, int olen, int ilen)
+omapi2cio(I2Cdev *dev, uchar *pkt, int olen, int ilen)
 {
 	Ctlr *ctlr;
 	uint con, addr, stat;
 	uint o;
 
-	ctlr = bus->ctlr;
+	ctlr = dev->bus->ctlr;
 	if(olen <= 0 || pkt == nil)
 		return -1;
 
-	o = 0;
+	o = 1;
 	con = Cen | Cmst | Ctrx | Cstp | Cstt;
-	if((pkt[o] & 0xf8) == 0xf0)
+	if(dev->a10)
 		return -1;
-	addr = pkt[o++] >> 1;
 
 	/* wait for bus */
 	omapi2cwaitbus(ctlr);
 
 	/* first attempt to probe, will get nack here if no dev */
 	csr32w(ctlr, Rcnt, olen);
-	csr32w(ctlr, Raddr, addr);
+	csr32w(ctlr, Raddr, dev->addr);
 	csr32w(ctlr, Rcon, con);
 	stat = omapi2cwait(ctlr);
 	if(stat & Inack || stat & Ial) {
