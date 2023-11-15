@@ -64,11 +64,11 @@ LIB=\
 	/$objtype/lib/libc.a\
 	/$objtype/lib/libdtracy.a\
 
-$p$CONF.u:D: $p$CONF
-	aux/aout2uimage -o $target -Z0 $prereq
-
 $p$CONF:D: $OBJ $CONF.$O $LIB
-	$LD -o $target -T$ktzero -l $prereq
+	$LD -o $target -R4096 -T$ktzero -H6 -l $prereq
+
+s$p$CONF:D: $OBJ $CONF.$O $LIB
+	$LD -o $target -R4096 -T$ktzero -l $prereq
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -77,6 +77,6 @@ $p$CONF:D: $OBJ $CONF.$O $LIB
 initcode.out: init9.$O initcode.$O /$objtype/lib/libc.a
 	$LD -l -R1 -s -o $target $prereq
 
-install:V: $p$CONF.u
+install:V: $p$CONF
 	cp $p$CONF /$objtype/
-	cp $p$CONF.u /$objtype/
+
