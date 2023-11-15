@@ -20,8 +20,6 @@ enum {
 	RDcontrol		= 0x440,
 		DClcdon			= 1<<0,
 		DClcdgo			= 1<<5,
-		DClcdbits		= 3<<8,
-		DClcdbits24		= 3<<8,
 	RDconfig		= 0x444,
 	RDdefcolor		= 0x44c,
 	RDtranscolor	= 0x454,
@@ -36,6 +34,8 @@ enum {
 	RDgfxpos			= 0x488,
 	RDgfxsize			= 0x48c,
 	RDgfxattr			= 0x4a0,
+		DCgfxattrfmt		= 0xf<<1,
+		DCgfxattrfmt16		= 0x6<<1,
 	RDgfxrowinc			= 0x4ac,
 	RDgfxpixelinc		= 0x4b0,
 };
@@ -146,7 +146,7 @@ screeninit(void)
 	uint x, y;
 
 	c = &ctlr;
-	if((csr32r(c, RDconfig) & DClcdbits) != DClcdbits24)
+	if((csr32r(c, RDgfxattr) & DCgfxattrfmt) != DCgfxattrfmt16)
 		return;
 
 	x = ((csr32r(c, RDgfxsize) & 0x0000ffff) >> 0) + 1;;
